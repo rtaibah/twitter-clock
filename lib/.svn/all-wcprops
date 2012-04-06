@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/iolab11/!svn/ver/353/projects/p3/TClock/lib
+END
+EpiOAuth.php
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/iolab11/!svn/ver/353/projects/p3/TClock/lib/EpiOAuth.php
+END
+EpiTwitter.php
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/iolab11/!svn/ver/353/projects/p3/TClock/lib/EpiTwitter.php
+END
+EpiCurl.php
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/iolab11/!svn/ver/353/projects/p3/TClock/lib/EpiCurl.php
+END
+secret.php
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/iolab11/!svn/ver/353/projects/p3/TClock/lib/secret.php
+END
+EpiSequence.php
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/iolab11/!svn/ver/353/projects/p3/TClock/lib/EpiSequence.php
+END

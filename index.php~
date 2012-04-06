@@ -1,0 +1,148 @@
+<?php
+error_reporting(E_ALL ^ E_NOTICE);
+session_start();
+
+include 'lib/EpiCurl.php';
+include 'lib/EpiOAuth.php';
+include 'lib/EpiTwitter.php';
+include 'lib/secret.php';
+
+$twitterObj = new EpiTwitter($consumer_key, $consumer_secret);
+$oauth_token = '';
+
+// get oauth token from session or from GET param 
+if(isset($_SESSION['ot']) && isset($_SESSION['ots'])) {
+    $oauth_token = $_SESSION['ot'];
+    $oauth_token_secret = $_SESSION['ots'];
+    $twitterObj->setToken($oauth_token, $oauth_token_secret);
+} else if(isset($_GET['oauth_token'])) {
+    // handle oauth callback from Twitter
+    $twitterObj->setToken($_GET['oauth_token']);  
+    $token = $twitterObj->getAccessToken();
+    $twitterObj->setToken($token->oauth_token, $token->oauth_token_secret);
+    $_SESSION['ot'] = $token->oauth_token;
+    $_SESSION['ots'] = $token->oauth_token_secret;
+    $oauth_token = $_SESSION['ot'];
+    $oauth_token_secret = $_SESSION['ots'];
+}
+
+if($oauth_token == '')
+// get authentication URL and display sign in link
+{
+     try {
+         $url = $twitterObj->getAuthenticateUrl();
+     }catch(EpiTwitterException $e){  
+       echo 'We caught an EpiOAuthException';  
+       echo $e->getMessage();  
+     }catch(Exception $e){  
+       echo 'We caught an unexpected Exception';  
+       echo $e->getMessage();  
+     }
+ echo "<div align='right'>";
+ echo "<a href='$url'>Sign In</a>";
+ echo "</div>";
+}
+else
+// authenticated to Twitter
+{
+ $twitterInfo = $twitterObj->get_accountVerify_credentials();
+ 
+ $user['username'] = $twitterInfo->screen_name;
+ $user['profilepic'] = $twitterInfo->profile_image_url;
+
+
+ $hometimeline= $twitterObj->get_statusesHome_timeline();  
+ $responseArray = array();
+ try{  
+   foreach($hometimeline as $status) {  
+     $responseArray[] = array('screenname' => $status->user->screen_name, 'text' => $status->text);
+   }  
+ }catch(EpiTwitterException $e){  
+   echo $e->getMessage();  
+ }
+
+// requires json_encode function
+$json_response = json_encode($responseArray);
+
+}
+
+?>
+
+<!DOCTYPE html >
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" id="iphone-viewport" content="minimum-scale=1.0, maximum-scale=1.0, width=device-width" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+
+	<link rel="stylesheet" href="spinningwheel.css" type="text/css" media="all" />
+	<link href='http://fonts.googleapis.com/css?family=Allan:700' rel='stylesheet' type='text/css'>
+
+	<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script>
+	<script type="text/javascript" src="strftime-min.js"></script>
+	<script type="text/javascript" src="spinningwheel-min.js?v=1.4"></script>
+	<script type="text/javascript" src="tweetalarm-alarm.js"></script>
+	<script type="text/javascript" src="tweetalarm-tweet.js"></script>
+	<script type="text/javascript" src="tweetalarm-txt2speech.js"></script>
+
+	<!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+	<script type="text/javascript" src="coolclock/coolclock.js"></script>
+	<script type="text/javascript" src="coolclock/moreskins.js"></script>
+
+
+	
+	<script>
+
+	<?php if(isset($json_response)) {
+	  echo "var twitter_response = ".$json_response.";";
+	}
+	?>
+
+	
+	</script>
+	
+
+	<title>Tweet Alarm</title>
+
+	<style type="text/css">
+	body { text-align:center; font-family:helvetica; background-color:#3BB9FF; }
+	button { font-size:16px; }
+	#alarm { margin:10px; background:#aaa; -webkit-border-radius:8px; padding:8px; font-size:18px; }
+	#tweet { margin:10px; background:#aaa; -webkit-border-radius:8px; padding:8px; font-size:18px; }
+	#AppName {font-size:12px;text-align:center;margin-top:-40px;font-family:Allan;color:#fff}
+	#signout {float:right; font-size:8px;}
+	#mainContainer { margin:10px; background:#fff; -webkit-border-radius:8px;height:350px; width:400px;float:center}
+	</style>
+</head>
+
+<p><?php
+if (isset($user)) {
+?>
+    <div style="text-align:left;">
+    <?php echo "<img src= '".$user['profilepic']."' width=\"20\" height=\"20\"/>" ?>
+    <!--<?php echo $user['username'] ?>-->
+    
+    <div id="signout" style="font-size:8px;"<a href="http://twitter.com/logout">sign out</a></div>
+    </div>
+<?php
+ }
+?></p>
+<div id="AppName"<h1>Tweet Alarm</h1>
+<body onload="CoolClock.findAndCreateClocks()"><div id="mainContainer">
+
+
+<div style="display:none"<p>Current Time:</p><p id="current_time"></p></div>
+
+
+
+<canvas id="u44" class="CoolClock:simple" width="170" height="170" style="width: 170px; height: 170px; align:center; " onclick="setAlarm()"></canvas>
+
+
+<!--<button onclick="setAlarm()">Set Alarm</button>-->
+<p id="alarm">Alarm set to:</p>
+<p id="tweet"></p>
+<span id="tweetAudio"></span>
+
+</div></body>
+<div style="font-size:7px;"<p>Scroll wheel component provided by <a href="http://cubiq.org/spinning-wheel-on-webkit-for-iphone-ipod-touch/11">cubiq.org</a></p></div>
+</html>
